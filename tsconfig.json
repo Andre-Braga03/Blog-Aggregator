@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "types": ["node"],
+    "typeRoots": ["./node_modules/@types"],
+    "target": "esnext",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "rootDir": "./src",
+    "outDir": "./dist",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true
+  },
+  "include": ["./src/**/*.ts"]
+}
