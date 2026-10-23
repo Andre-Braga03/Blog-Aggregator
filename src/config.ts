@@ -39,3 +39,8 @@ function validateConfig(cfg : any) : Config{
         currentUserName: cfg.current_user_name ?? "",
       };
 }
+
+export type CommandHandler = (cmdName: string, ...args: string[]) => void;
+
+
+
