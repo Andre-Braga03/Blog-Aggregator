@@ -20,3 +20,4 @@ export async function resetDB() {
 export async function getAllUsers(){
   return await db.select().from(users);
 }
+

@@ -1,5 +1,8 @@
 import {readConfig, setUser, type CommandHandler } from "./config.js"
 import { createUser,getUser,resetDB, getAllUsers } from "./db/queries/users.js";
+import { fetchRSSFeed } from "./rss.js";
+import { createFeed, getAllFeeds } from "./db/queries/feeds.js";
+import { Feed, User } from "./db/schema.js";
 
 export type CommandsRegistry = Record<string, CommandHandler>;
 
@@ -51,6 +54,34 @@ export async function handlerList(){
     }
 }
 
+
+export async function handlerAgg(cmdName: string, ...args: string[]){
+    const feed = await fetchRSSFeed("https://www.wagslane.dev/index.xml");
+    console.log(JSON.stringify(feed, null, 2));
+}
+
+export async function handlerAddFeed(cmdName: string, ...args: string[]){
+    if(args.length < 2){
+        throw new Error("addfeed requieres a name and a url.");
+}
+
+    const name = args[0];
+    const url = args[1];
+    const user = await getUser(readConfig().currentUserName);
+    if(!user){
+        throw new Error("current user does not exist.");
+    }
+    const feed = await createFeed(name, url, user.id);
+    printFeed(feed, user);
+}
+
+export async function handlerFeeds(){
+    const rows = await getAllFeeds();
+    for(const row of rows){
+        printFeed(row.feeds, row.users);
+    }
+}
+
 export function registerCommand(registry: CommandsRegistry,
     cmd: string, 
     handler: CommandHandler
@@ -71,3 +102,12 @@ export async function runCommand(
 
    await handler(cmdName, ...args);
 }
+
+function printFeed(feed: Feed, user: User) {
+    console.log(`* ID:      ${feed.id}`);
+    console.log(`* Created: ${feed.createdAt}`);
+    console.log(`* Updated: ${feed.updatedAt}`);
+    console.log(`* Name:    ${feed.name}`);
+    console.log(`* URL:     ${feed.url}`);
+    console.log(`* User:    ${user.name}`);
+  }
