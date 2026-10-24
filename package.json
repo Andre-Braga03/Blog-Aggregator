@@ -3,12 +3,11 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "tsx ./src/index.ts",
+    "generate": "drizzle-kit generate --config drizzle.config.ts",
+    "migrate": "drizzle-kit migrate --config drizzle.config.ts"
   },
   "type": "module",
-  "scripts": {
-    "start": "tsx ./src/index.ts"
-  },
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -17,5 +16,9 @@
     "@types/node": "^26.6.5",
     "tsx": "^4.23.15",
     "typescript": "^7.0.2"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.45.4",
+    "postgres": "^3.4.9"
   }
 }
