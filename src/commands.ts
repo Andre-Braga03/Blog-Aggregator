@@ -1,10 +1,26 @@
 import {readConfig, setUser, type CommandHandler } from "./config.js"
 import { createUser,getUser,resetDB, getAllUsers } from "./db/queries/users.js";
 import { fetchRSSFeed } from "./rss.js";
-import { createFeed, getAllFeeds } from "./db/queries/feeds.js";
+import { createFeed, getAllFeeds, getFeedByUrl, getFeedById } from "./db/queries/feeds.js";
 import { Feed, User } from "./db/schema.js";
+import { createFeedFollow, getFeedFollowsForUser, unfollowFeed } from "./db/queries/FeedsAndUsers.js";
 
 export type CommandsRegistry = Record<string, CommandHandler>;
+type UserCommandHandler = (
+    cmdName: string,
+    user: User,
+    ...args: string[]
+  ) => Promise<void>;
+
+  export function middlewareLoggedIn(handler: UserCommandHandler): CommandHandler {
+    return async (cmdName: string, ...args: string[]) => {
+      const user = await getUser(readConfig().currentUserName);
+      if (!user) {
+        throw new Error("current user does not exist.");
+      }
+      await handler(cmdName, user, ...args);
+    };
+  }
 
 export async function handlerLogin(cmdName: string, ...args: string[]) {
     if(args.length === 0){
@@ -60,19 +76,16 @@ export async function handlerAgg(cmdName: string, ...args: string[]){
     console.log(JSON.stringify(feed, null, 2));
 }
 
-export async function handlerAddFeed(cmdName: string, ...args: string[]){
+export async function handlerAddFeed(cmdName: string, user: User, ...args: string[]){
     if(args.length < 2){
         throw new Error("addfeed requieres a name and a url.");
 }
 
     const name = args[0];
     const url = args[1];
-    const user = await getUser(readConfig().currentUserName);
-    if(!user){
-        throw new Error("current user does not exist.");
-    }
     const feed = await createFeed(name, url, user.id);
-    printFeed(feed, user);
+    await createFeedFollow(user.id, feed.id);
+    console.log(` ${feed.name} ${user.name}`);
 }
 
 export async function handlerFeeds(){
@@ -80,6 +93,41 @@ export async function handlerFeeds(){
     for(const row of rows){
         printFeed(row.feeds, row.users);
     }
+}
+
+export async function handlerFollow(cmdName: string, user: User, ...args: string[]){
+    if(args.length < 1){
+        throw new Error("follow requires a url.");
+    }
+
+ const url = args[0];
+ const feed = await getFeedByUrl(url);
+ if(!feed){
+    throw new Error("feed does not exist.");
+ }
+
+ await createFeedFollow(user.id, feed.id);
+ console.log(` ${feed.name}`);
+ console.log(` ${user.name}`);
+
+}
+
+export async function handlerFollowing(cmdName: string, user: User){
+    const feedFollows = await getFeedFollowsForUser(user.id);
+    for(const feedFollow of feedFollows){
+        const feedName = await getFeedById(feedFollow.feed_id);
+        console.log(`${feedName.name}`);
+    }
+}
+
+export async function handlerUnfollow(cmdName: string, user: User, ...args: string[]){
+    if(args.length < 1){
+        throw new Error("unfollow requires a url.");
+    }
+    const url = args[0];
+    await unfollowFeed(user.id, url);
+    console.log(`${url}`);
+    console.log(`${user.name}`);
 }
 
 export function registerCommand(registry: CommandsRegistry,
