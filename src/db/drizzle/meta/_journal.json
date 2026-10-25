@@ -22,6 +22,20 @@
       "when": 1792933621465,
       "tag": "0002_burly_rumiko_fujikawa",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1792936807169,
+      "tag": "0003_blushing_thunderbolt_ross",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1792937828368,
+      "tag": "0004_organic_electro",
+      "breakpoints": true
     }
   ]
 }
